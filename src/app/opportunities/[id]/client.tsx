@@ -6,12 +6,16 @@ import {
 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RelevanceBadge } from "@/components/shared/relevance-badge";
-import { sampleOpportunities, getCompanyName, sampleNewsArticles } from "@/data/sample-data";
+import type { Opportunity, NewsArticle } from "@/lib/supabase/queries";
 import { formatDate } from "@/lib/utils";
 
-export function OpportunityDetailClient({ oppId }: { oppId: string }) {
-  const opp = sampleOpportunities.find((o) => o.id === oppId);
+interface Props {
+  opp: Opportunity | undefined;
+  companyName: string;
+  sourceArticle: NewsArticle | undefined;
+}
 
+export function OpportunityDetailClient({ opp, companyName, sourceArticle }: Props) {
   if (!opp) {
     return (
       <div className="max-w-[1280px] mx-auto py-12 text-center">
@@ -24,8 +28,6 @@ export function OpportunityDetailClient({ oppId }: { oppId: string }) {
     );
   }
 
-  const sourceArticle = sampleNewsArticles.find((n) => n.id === opp.sourceArticleId);
-
   return (
     <div className="max-w-[1280px] mx-auto space-y-6">
       <Link href="/opportunities" className="inline-flex items-center gap-1 text-sm text-foreground-muted hover:text-primary">
@@ -37,7 +39,7 @@ export function OpportunityDetailClient({ oppId }: { oppId: string }) {
           <h1 className="text-2xl font-bold text-foreground">{opp.headline}</h1>
           <div className="flex items-center gap-3 mt-1.5 text-sm text-foreground-muted">
             <Link href={`/companies/${opp.companyId}`} className="hover:text-primary">
-              {getCompanyName(opp.companyId)}
+              {companyName}
             </Link>
             <span>·</span>
             <span>{opp.signalType}</span>

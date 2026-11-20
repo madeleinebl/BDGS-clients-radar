@@ -5,12 +5,16 @@ import {
   ArrowLeft, ExternalLink, Handshake, Calendar,
 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { sampleDeals, getCompanyName, sampleNewsArticles } from "@/data/sample-data";
+import type { Deal, NewsArticle } from "@/lib/supabase/queries";
 import { formatDate, formatCurrency } from "@/lib/utils";
 
-export function DealDetailClient({ dealId }: { dealId: string }) {
-  const deal = sampleDeals.find((d) => d.id === dealId);
+interface Props {
+  deal: Deal | undefined;
+  companyName: string;
+  relatedNews: NewsArticle[];
+}
 
+export function DealDetailClient({ deal, companyName, relatedNews }: Props) {
   if (!deal) {
     return (
       <div className="max-w-[1280px] mx-auto py-12 text-center">
@@ -23,8 +27,6 @@ export function DealDetailClient({ dealId }: { dealId: string }) {
     );
   }
 
-  const relatedNews = sampleNewsArticles.filter((n) => n.companyIds.includes(deal.companyId)).slice(0, 4);
-
   return (
     <div className="max-w-[1280px] mx-auto space-y-6">
       <Link href="/deals" className="inline-flex items-center gap-1 text-sm text-foreground-muted hover:text-primary">
@@ -36,7 +38,7 @@ export function DealDetailClient({ dealId }: { dealId: string }) {
           <h1 className="text-2xl font-bold text-foreground">{deal.name}</h1>
           <div className="flex items-center gap-3 mt-1.5 text-sm text-foreground-muted">
             <Link href={`/companies/${deal.companyId}`} className="hover:text-primary">
-              {getCompanyName(deal.companyId)}
+              {companyName}
             </Link>
             <span>·</span>
             <span>{deal.dealType}</span>

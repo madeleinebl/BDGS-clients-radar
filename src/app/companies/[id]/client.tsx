@@ -7,18 +7,21 @@ import {
 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RelevanceBadge } from "@/components/shared/relevance-badge";
-import {
-  getCompanyById, getNewsByCompany, getDealsByCompany,
-  getOpportunitiesByCompany,
-} from "@/data/sample-data";
+import type { Company, NewsArticle, Deal, Opportunity } from "@/lib/supabase/queries";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 const tabs = ["Overview", "Deals", "News", "Opportunities", "Notes"] as const;
 type Tab = (typeof tabs)[number];
 
-export function CompanyProfileClient({ companyId }: { companyId: string }) {
-  const company = getCompanyById(companyId);
+interface Props {
+  company: Company | undefined;
+  companyNews: NewsArticle[];
+  companyDeals: Deal[];
+  companyOpps: Opportunity[];
+}
+
+export function CompanyProfileClient({ company, companyNews, companyDeals, companyOpps }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
 
   if (!company) {
@@ -32,10 +35,6 @@ export function CompanyProfileClient({ companyId }: { companyId: string }) {
       </div>
     );
   }
-
-  const companyNews = getNewsByCompany(companyId);
-  const companyDeals = getDealsByCompany(companyId);
-  const companyOpps = getOpportunitiesByCompany(companyId);
 
   return (
     <div className="max-w-[1280px] mx-auto space-y-6">

@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { ArrowLeft, FileText, Calendar, ExternalLink } from "lucide-react";
-import { sampleBriefings, sampleNewsArticles } from "@/data/sample-data";
+import type { Briefing, NewsArticle } from "@/lib/supabase/queries";
 import { formatDate } from "@/lib/utils";
 import { RelevanceBadge } from "@/components/shared/relevance-badge";
 import { cn } from "@/lib/utils";
 
-export function BriefingDetailClient({ briefingId }: { briefingId: string }) {
-  const briefing = sampleBriefings.find((b) => b.id === briefingId);
+interface Props {
+  briefing: Briefing | undefined;
+  articles: NewsArticle[];
+}
 
+export function BriefingDetailClient({ briefing, articles }: Props) {
   if (!briefing) {
     return (
       <div className="max-w-[1280px] mx-auto py-12 text-center">
@@ -21,10 +24,6 @@ export function BriefingDetailClient({ briefingId }: { briefingId: string }) {
       </div>
     );
   }
-
-  const articles = briefing.articleIds
-    .map((id) => sampleNewsArticles.find((n) => n.id === id))
-    .filter(Boolean);
 
   return (
     <div className="max-w-[1280px] mx-auto space-y-6">
@@ -79,23 +78,21 @@ export function BriefingDetailClient({ briefingId }: { briefingId: string }) {
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground-muted mb-3">Source Articles</h3>
           <div className="space-y-3">
-            {articles.map((article) =>
-              article ? (
-                <div key={article.id} className="rounded-lg border border-border p-3">
-                  <span className="text-xs text-foreground-muted">
-                    {article.source} · {formatDate(article.publishedAt)}
-                  </span>
-                  <p className="text-sm font-medium mt-1 line-clamp-2">{article.headline}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <RelevanceBadge score={article.relevanceScore} label="REL" />
-                    <a href={article.sourceUrl} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline ml-auto">
-                      Source <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
+            {articles.map((article) => (
+              <div key={article.id} className="rounded-lg border border-border p-3">
+                <span className="text-xs text-foreground-muted">
+                  {article.source} · {formatDate(article.publishedAt)}
+                </span>
+                <p className="text-sm font-medium mt-1 line-clamp-2">{article.headline}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <RelevanceBadge score={article.relevanceScore} label="REL" />
+                  <a href={article.sourceUrl} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline ml-auto">
+                    Source <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
-              ) : null
-            )}
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -21,6 +21,12 @@ import {
   getDealsByCompany as sampleGetDealsByCompany,
   getOpportunitiesByCompany as sampleGetOpportunitiesByCompany,
 } from "@/data/sample-data";
+
+// Sample-data by-id helpers (inline, since sample-data.ts doesn't export them all)
+const sampleGetDealById = (id: string) => sampleDeals.find((d) => d.id === id);
+const sampleGetOpportunityById = (id: string) => sampleOpportunities.find((o) => o.id === id);
+const sampleGetBriefingById = (id: string) => sampleBriefings.find((b) => b.id === id);
+const sampleGetNewsArticleById = (id: string) => sampleNews.find((n) => n.id === id);
 import type {
   Company,
   NewsArticle,
@@ -296,6 +302,60 @@ export async function fetchBriefings(): Promise<Briefing[]> {
   }
 
   return (data ?? []).map((r) => mapBriefing(r as Record<string, unknown>));
+}
+
+export async function fetchDealById(id: string): Promise<Deal | undefined> {
+  if (!isSupabaseConfigured()) return sampleGetDealById(id);
+
+  const { data, error } = await supabase
+    .from("deals")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return undefined;
+  return mapDeal(data as Record<string, unknown>);
+}
+
+export async function fetchOpportunityById(id: string): Promise<Opportunity | undefined> {
+  if (!isSupabaseConfigured()) return sampleGetOpportunityById(id);
+
+  const { data, error } = await supabase
+    .from("opportunities")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return undefined;
+  return mapOpportunity(data as Record<string, unknown>);
+}
+
+export async function fetchBriefingById(id: string): Promise<Briefing | undefined> {
+  if (!isSupabaseConfigured()) return sampleGetBriefingById(id);
+
+  const { data, error } = await supabase
+    .from("briefings")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return undefined;
+  return mapBriefing(data as Record<string, unknown>);
+}
+
+export async function fetchNewsArticleById(id: string): Promise<NewsArticle | undefined> {
+  if (!isSupabaseConfigured()) return sampleGetNewsArticleById(id);
+
+  const { data, error } = await supabase
+    .from("news_articles")
+    .select("*, article_companies(company_id)")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return undefined;
+  const row = data as Record<string, unknown>;
+  const junctions = (row.article_companies as Array<{ company_id: string }>) ?? [];
+  return mapNewsArticle(row, junctions.map((j) => j.company_id));
 }
 
 export async function fetchWatchlistItems(): Promise<WatchlistItem[]> {
