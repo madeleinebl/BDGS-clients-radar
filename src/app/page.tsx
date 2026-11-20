@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import Link from "next/link";
 import {
   Building2,
@@ -11,16 +12,29 @@ import { StatCard } from "@/components/shared/stat-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RelevanceBadge } from "@/components/shared/relevance-badge";
 import {
-  companies,
-  newsArticles,
-  deals,
-  opportunities,
-  watchlistItems,
-  getCompanyName,
-} from "@/data/sample-data";
+  fetchCompanies,
+  fetchNewsArticles,
+  fetchDeals,
+  fetchOpportunities,
+  fetchWatchlistItems,
+  fetchCompanyName,
+} from "@/lib/supabase/queries";
 import { formatDate, formatCurrency } from "@/lib/utils";
 
-export default function DashboardPage() {
+export const instant = false;
+
+export default async function DashboardPage() {
+  await connection(); // Opt into dynamic rendering (new Date() needs request time)
+
+  const [companiesData, newsArticles, deals, opportunities, watchlistItems] =
+    await Promise.all([
+      fetchCompanies(),
+      fetchNewsArticles(),
+      fetchDeals(),
+      fetchOpportunities(),
+      fetchWatchlistItems(),
+    ]);
+
   const topStories = [...newsArticles]
     .sort((a, b) => b.relevanceScore - a.relevanceScore)
     .slice(0, 5);
@@ -44,9 +58,14 @@ export default function DashboardPage() {
     .sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
     .slice(0, 4);
 
+  const today = new Date().toISOString().slice(0, 10);
   const todayArticles = newsArticles.filter((n) =>
-    n.publishedAt.startsWith("2026-11-19")
+    n.publishedAt.startsWith(today)
   );
+
+  const companies = companiesData;
+  const companyNameMap = new Map(companies.map((c) => [c.id, c.name]));
+  const getCompanyName = (id: string) => companyNameMap.get(id) ?? "Unknown";
 
   return (
     <div className="max-w-[1280px] mx-auto space-y-8">

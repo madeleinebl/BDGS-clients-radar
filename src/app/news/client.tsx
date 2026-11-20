@@ -6,7 +6,7 @@ import { ExternalLink, Star, ChevronDown, ChevronUp } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { FilterBar } from "@/components/shared/filter-bar";
 import { ScoreBadgePair, ScoreBreakdown } from "@/components/shared/score-breakdown";
-import { newsArticles, getCompanyName, companies } from "@/data/sample-data";
+import type { NewsArticle, Company } from "@/data/sample-data";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import {
@@ -33,7 +33,9 @@ const priorityFilterOptions = [
   { value: "INFORMATIONAL", label: "INFO (0–39)" },
 ];
 
-export function NewsFeedClient() {
+export function NewsFeedClient({ newsArticles, companies }: { newsArticles: NewsArticle[]; companies: Company[] }) {
+  const companyNameMap = new Map(companies.map((c) => [c.id, c.name]));
+  const getCompanyName = (id: string) => companyNameMap.get(id) ?? "Unknown";
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [companyFilter, setCompanyFilter] = useState("");
