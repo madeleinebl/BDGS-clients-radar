@@ -6,12 +6,16 @@ import type { Database } from "./types";
 // can reach Supabase directly.  The anon key is safe to expose — RLS policies
 // control what it can touch.  The service-role key stays server-side only.
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
+const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
 
 // ─── Helper: is Supabase configured? ──────────────────────────────────────────
 export function isSupabaseConfigured(): boolean {
-  return Boolean(supabaseUrl && supabaseAnonKey);
+  const configured = Boolean(supabaseUrl && supabaseAnonKey);
+  if (!configured) {
+    console.warn("[BDGS] Supabase NOT configured — using sample data. URL:", supabaseUrl ? "set" : "MISSING", "Key:", supabaseAnonKey ? "set" : "MISSING");
+  }
+  return configured;
 }
 
 // ─── Lazy singleton (avoids crash when env vars are missing at build) ──────────
