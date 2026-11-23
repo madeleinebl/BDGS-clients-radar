@@ -15,10 +15,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  LogOut,
 } from "lucide-react";
-import { createAuthClient } from "@/lib/supabase/auth-client";
-import { useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -39,14 +36,6 @@ const navItems = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
-
-  async function handleLogout() {
-    const supabase = createAuthClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
 
   return (
     <aside
@@ -118,16 +107,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      {/* Logout */}
-      <button
-        onClick={handleLogout}
-        className="flex items-center gap-3 mx-2 mb-2 rounded-md px-3 py-2 text-sm font-medium text-foreground-muted hover:bg-red-50 hover:text-red-600 transition-colors"
-        title={collapsed ? "Déconnexion" : undefined}
-      >
-        <LogOut className="h-5 w-5 shrink-0" />
-        {!collapsed && <span>Déconnexion</span>}
-      </button>
 
       {/* Collapse toggle */}
       <button
