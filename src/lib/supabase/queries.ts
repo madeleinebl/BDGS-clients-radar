@@ -7,7 +7,22 @@
  * All data returned represents publicly sourced information only.
  */
 
-import { supabase, isSupabaseConfigured } from "./client";
+import { createServerClient } from "./server";
+
+// Check if Supabase server env vars are available (read dynamically, not at build)
+function isSupabaseReady(): boolean {
+  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
+  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+  const ready = Boolean(url && key);
+  if (!ready) {
+    console.warn("[BDGS] Supabase server not configured — URL:", url ? "set" : "MISSING", "Service Key:", key ? "set" : "MISSING");
+  }
+  return ready;
+}
+
+function getDb() {
+  return createServerClient();
+}
 import {
   companies as sampleCompanies,
   newsArticles as sampleNews,
@@ -152,9 +167,9 @@ function mapWatchlistItem(row: Record<string, unknown>): WatchlistItem {
 // ─── Queries ───────────────────────────────────────────────────────────────────
 
 export async function fetchCompanies(): Promise<Company[]> {
-  if (!isSupabaseConfigured()) return sampleCompanies;
+  if (!isSupabaseReady()) return sampleCompanies;
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("companies")
     .select("*")
     .order("name");
@@ -168,9 +183,9 @@ export async function fetchCompanies(): Promise<Company[]> {
 }
 
 export async function fetchCompanyById(id: string): Promise<Company | undefined> {
-  if (!isSupabaseConfigured()) return sampleGetCompanyById(id);
+  if (!isSupabaseReady()) return sampleGetCompanyById(id);
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("companies")
     .select("*")
     .eq("id", id)
@@ -181,16 +196,16 @@ export async function fetchCompanyById(id: string): Promise<Company | undefined>
 }
 
 export async function fetchCompanyName(id: string): Promise<string> {
-  if (!isSupabaseConfigured()) return sampleGetCompanyName(id);
+  if (!isSupabaseReady()) return sampleGetCompanyName(id);
 
   const company = await fetchCompanyById(id);
   return company?.name ?? "Unknown";
 }
 
 export async function fetchNewsArticles(): Promise<NewsArticle[]> {
-  if (!isSupabaseConfigured()) return sampleNews;
+  if (!isSupabaseReady()) return sampleNews;
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("news_articles")
     .select("*, article_companies(company_id)")
     .order("published_at", { ascending: false });
@@ -209,9 +224,9 @@ export async function fetchNewsArticles(): Promise<NewsArticle[]> {
 }
 
 export async function fetchNewsByCompany(companyId: string): Promise<NewsArticle[]> {
-  if (!isSupabaseConfigured()) return sampleGetNewsByCompany(companyId);
+  if (!isSupabaseReady()) return sampleGetNewsByCompany(companyId);
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("article_companies")
     .select("article_id, news_articles(*)")
     .eq("company_id", companyId);
@@ -229,9 +244,9 @@ export async function fetchNewsByCompany(companyId: string): Promise<NewsArticle
 }
 
 export async function fetchDeals(): Promise<Deal[]> {
-  if (!isSupabaseConfigured()) return sampleDeals;
+  if (!isSupabaseReady()) return sampleDeals;
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("deals")
     .select("*")
     .order("announcement_date", { ascending: false });
@@ -245,9 +260,9 @@ export async function fetchDeals(): Promise<Deal[]> {
 }
 
 export async function fetchDealsByCompany(companyId: string): Promise<Deal[]> {
-  if (!isSupabaseConfigured()) return sampleGetDealsByCompany(companyId);
+  if (!isSupabaseReady()) return sampleGetDealsByCompany(companyId);
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("deals")
     .select("*")
     .eq("company_id", companyId)
@@ -258,9 +273,9 @@ export async function fetchDealsByCompany(companyId: string): Promise<Deal[]> {
 }
 
 export async function fetchOpportunities(): Promise<Opportunity[]> {
-  if (!isSupabaseConfigured()) return sampleOpportunities;
+  if (!isSupabaseReady()) return sampleOpportunities;
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("opportunities")
     .select("*")
     .order("detected_at", { ascending: false });
@@ -276,9 +291,9 @@ export async function fetchOpportunities(): Promise<Opportunity[]> {
 export async function fetchOpportunitiesByCompany(
   companyId: string,
 ): Promise<Opportunity[]> {
-  if (!isSupabaseConfigured()) return sampleGetOpportunitiesByCompany(companyId);
+  if (!isSupabaseReady()) return sampleGetOpportunitiesByCompany(companyId);
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("opportunities")
     .select("*")
     .eq("company_id", companyId)
@@ -289,9 +304,9 @@ export async function fetchOpportunitiesByCompany(
 }
 
 export async function fetchBriefings(): Promise<Briefing[]> {
-  if (!isSupabaseConfigured()) return sampleBriefings;
+  if (!isSupabaseReady()) return sampleBriefings;
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("briefings")
     .select("*")
     .order("generated_at", { ascending: false });
@@ -305,9 +320,9 @@ export async function fetchBriefings(): Promise<Briefing[]> {
 }
 
 export async function fetchDealById(id: string): Promise<Deal | undefined> {
-  if (!isSupabaseConfigured()) return sampleGetDealById(id);
+  if (!isSupabaseReady()) return sampleGetDealById(id);
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("deals")
     .select("*")
     .eq("id", id)
@@ -318,9 +333,9 @@ export async function fetchDealById(id: string): Promise<Deal | undefined> {
 }
 
 export async function fetchOpportunityById(id: string): Promise<Opportunity | undefined> {
-  if (!isSupabaseConfigured()) return sampleGetOpportunityById(id);
+  if (!isSupabaseReady()) return sampleGetOpportunityById(id);
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("opportunities")
     .select("*")
     .eq("id", id)
@@ -331,9 +346,9 @@ export async function fetchOpportunityById(id: string): Promise<Opportunity | un
 }
 
 export async function fetchBriefingById(id: string): Promise<Briefing | undefined> {
-  if (!isSupabaseConfigured()) return sampleGetBriefingById(id);
+  if (!isSupabaseReady()) return sampleGetBriefingById(id);
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("briefings")
     .select("*")
     .eq("id", id)
@@ -344,9 +359,9 @@ export async function fetchBriefingById(id: string): Promise<Briefing | undefine
 }
 
 export async function fetchNewsArticleById(id: string): Promise<NewsArticle | undefined> {
-  if (!isSupabaseConfigured()) return sampleGetNewsArticleById(id);
+  if (!isSupabaseReady()) return sampleGetNewsArticleById(id);
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("news_articles")
     .select("*, article_companies(company_id)")
     .eq("id", id)
@@ -359,9 +374,9 @@ export async function fetchNewsArticleById(id: string): Promise<NewsArticle | un
 }
 
 export async function fetchWatchlistItems(): Promise<WatchlistItem[]> {
-  if (!isSupabaseConfigured()) return sampleWatchlist;
+  if (!isSupabaseReady()) return sampleWatchlist;
 
-  const { data, error } = await supabase
+  const { data, error } = await getDb()
     .from("watchlist_items")
     .select("*")
     .order("added_at", { ascending: false });
