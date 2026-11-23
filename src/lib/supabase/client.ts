@@ -6,14 +6,21 @@ import type { Database } from "./types";
 // can reach Supabase directly.  The anon key is safe to expose — RLS policies
 // control what it can touch.  The service-role key stays server-side only.
 
-const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
-const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
+// Read env vars dynamically so they are never captured at build time.
+function getUrl(): string {
+  return (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
+}
+function getAnonKey(): string {
+  return (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
+}
 
 // ─── Helper: is Supabase configured? ──────────────────────────────────────────
 export function isSupabaseConfigured(): boolean {
-  const configured = Boolean(supabaseUrl && supabaseAnonKey);
+  const url = getUrl();
+  const key = getAnonKey();
+  const configured = Boolean(url && key);
   if (!configured) {
-    console.warn("[BDGS] Supabase NOT configured — using sample data. URL:", supabaseUrl ? "set" : "MISSING", "Key:", supabaseAnonKey ? "set" : "MISSING");
+    console.warn("[BDGS] Supabase NOT configured — using sample data. URL:", url ? "set" : "MISSING", "Key:", key ? "set" : "MISSING");
   }
   return configured;
 }
@@ -23,12 +30,14 @@ let _client: SupabaseClient<Database> | null = null;
 
 export function getSupabase(): SupabaseClient<Database> {
   if (!_client) {
-    if (!isSupabaseConfigured()) {
+    const url = getUrl();
+    const key = getAnonKey();
+    if (!url || !key) {
       throw new Error(
         "[BDGS] Cannot create Supabase client — env vars missing.",
       );
     }
-    _client = createClient<Database>(supabaseUrl, supabaseAnonKey);
+    _client = createClient<Database>(url, key);
   }
   return _client;
 }
