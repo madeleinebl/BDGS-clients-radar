@@ -7,6 +7,7 @@
  * All data returned represents publicly sourced information only.
  */
 
+import { unstable_cache } from "next/cache";
 import { supabase, isSupabaseConfigured } from "./client";
 import {
   companies as sampleCompanies,
@@ -151,7 +152,7 @@ function mapWatchlistItem(row: Record<string, unknown>): WatchlistItem {
 
 // ─── Queries ───────────────────────────────────────────────────────────────────
 
-export async function fetchCompanies(): Promise<Company[]> {
+const _fetchCompaniesUncached = async (): Promise<Company[]> => {
   if (!isSupabaseConfigured()) return sampleCompanies;
 
   const { data, error } = await supabase
@@ -165,7 +166,13 @@ export async function fetchCompanies(): Promise<Company[]> {
   }
 
   return (data ?? []).map((r) => mapCompany(r as Record<string, unknown>));
-}
+};
+
+export const fetchCompanies = unstable_cache(
+  _fetchCompaniesUncached,
+  ["companies"],
+  { revalidate: 300 },
+);
 
 export async function fetchCompanyById(id: string): Promise<Company | undefined> {
   if (!isSupabaseConfigured()) return sampleGetCompanyById(id);
@@ -187,7 +194,7 @@ export async function fetchCompanyName(id: string): Promise<string> {
   return company?.name ?? "Unknown";
 }
 
-export async function fetchNewsArticles(): Promise<NewsArticle[]> {
+const _fetchNewsArticlesUncached = async (): Promise<NewsArticle[]> => {
   if (!isSupabaseConfigured()) return sampleNews;
 
   const { data, error } = await supabase
@@ -206,7 +213,13 @@ export async function fetchNewsArticles(): Promise<NewsArticle[]> {
     const companyIds = junctions.map((j) => j.company_id);
     return mapNewsArticle(row, companyIds);
   });
-}
+};
+
+export const fetchNewsArticles = unstable_cache(
+  _fetchNewsArticlesUncached,
+  ["news-articles"],
+  { revalidate: 300 },
+);
 
 export async function fetchNewsByCompany(companyId: string): Promise<NewsArticle[]> {
   if (!isSupabaseConfigured()) return sampleGetNewsByCompany(companyId);
@@ -228,7 +241,7 @@ export async function fetchNewsByCompany(companyId: string): Promise<NewsArticle
   });
 }
 
-export async function fetchDeals(): Promise<Deal[]> {
+const _fetchDealsUncached = async (): Promise<Deal[]> => {
   if (!isSupabaseConfigured()) return sampleDeals;
 
   const { data, error } = await supabase
@@ -242,7 +255,13 @@ export async function fetchDeals(): Promise<Deal[]> {
   }
 
   return (data ?? []).map((r) => mapDeal(r as Record<string, unknown>));
-}
+};
+
+export const fetchDeals = unstable_cache(
+  _fetchDealsUncached,
+  ["deals"],
+  { revalidate: 300 },
+);
 
 export async function fetchDealsByCompany(companyId: string): Promise<Deal[]> {
   if (!isSupabaseConfigured()) return sampleGetDealsByCompany(companyId);
@@ -257,7 +276,7 @@ export async function fetchDealsByCompany(companyId: string): Promise<Deal[]> {
   return (data ?? []).map((r) => mapDeal(r as Record<string, unknown>));
 }
 
-export async function fetchOpportunities(): Promise<Opportunity[]> {
+const _fetchOpportunitiesUncached = async (): Promise<Opportunity[]> => {
   if (!isSupabaseConfigured()) return sampleOpportunities;
 
   const { data, error } = await supabase
@@ -271,7 +290,13 @@ export async function fetchOpportunities(): Promise<Opportunity[]> {
   }
 
   return (data ?? []).map((r) => mapOpportunity(r as Record<string, unknown>));
-}
+};
+
+export const fetchOpportunities = unstable_cache(
+  _fetchOpportunitiesUncached,
+  ["opportunities"],
+  { revalidate: 300 },
+);
 
 export async function fetchOpportunitiesByCompany(
   companyId: string,
@@ -288,7 +313,7 @@ export async function fetchOpportunitiesByCompany(
   return (data ?? []).map((r) => mapOpportunity(r as Record<string, unknown>));
 }
 
-export async function fetchBriefings(): Promise<Briefing[]> {
+const _fetchBriefingsUncached = async (): Promise<Briefing[]> => {
   if (!isSupabaseConfigured()) return sampleBriefings;
 
   const { data, error } = await supabase
@@ -302,7 +327,13 @@ export async function fetchBriefings(): Promise<Briefing[]> {
   }
 
   return (data ?? []).map((r) => mapBriefing(r as Record<string, unknown>));
-}
+};
+
+export const fetchBriefings = unstable_cache(
+  _fetchBriefingsUncached,
+  ["briefings"],
+  { revalidate: 300 },
+);
 
 export async function fetchDealById(id: string): Promise<Deal | undefined> {
   if (!isSupabaseConfigured()) return sampleGetDealById(id);
@@ -358,7 +389,7 @@ export async function fetchNewsArticleById(id: string): Promise<NewsArticle | un
   return mapNewsArticle(row, junctions.map((j) => j.company_id));
 }
 
-export async function fetchWatchlistItems(): Promise<WatchlistItem[]> {
+const _fetchWatchlistItemsUncached = async (): Promise<WatchlistItem[]> => {
   if (!isSupabaseConfigured()) return sampleWatchlist;
 
   const { data, error } = await supabase
@@ -372,4 +403,10 @@ export async function fetchWatchlistItems(): Promise<WatchlistItem[]> {
   }
 
   return (data ?? []).map((r) => mapWatchlistItem(r as Record<string, unknown>));
-}
+};
+
+export const fetchWatchlistItems = unstable_cache(
+  _fetchWatchlistItemsUncached,
+  ["watchlist-items"],
+  { revalidate: 300 },
+);

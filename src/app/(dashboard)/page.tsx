@@ -24,7 +24,7 @@ import { formatDate, formatCurrency } from "@/lib/utils";
 export const instant = false;
 
 export default async function DashboardPage() {
-  await connection(); // Opt into dynamic rendering (new Date() needs request time)
+  await connection();
 
   const [companiesData, newsArticles, deals, opportunities, watchlistItems] =
     await Promise.all([
