@@ -36,7 +36,8 @@ export function DealsClient({ sampleDeals, companies }: { sampleDeals: Deal[]; c
       deals = deals.filter(
         (d) =>
           d.name.toLowerCase().includes(q) ||
-          getCompanyName(d.companyId).toLowerCase().includes(q)
+          getCompanyName(d.companyId).toLowerCase().includes(q) ||
+          (d.advisors && d.advisors.some((a) => a.toLowerCase().includes(q)))
       );
     }
     if (dealType !== "All Types") deals = deals.filter((d) => d.dealType === dealType);
@@ -84,6 +85,7 @@ export function DealsClient({ sampleDeals, companies }: { sampleDeals: Deal[]; c
               <th className="px-4 py-3 text-left">Type</th>
               <th className="px-4 py-3 text-right">Amount</th>
               <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Conseils</th>
               <th className="px-4 py-3 text-left">Announced</th>
               <th className="px-4 py-3 text-left">Source</th>
             </tr>
@@ -106,6 +108,11 @@ export function DealsClient({ sampleDeals, companies }: { sampleDeals: Deal[]; c
                   {deal.amount ? formatCurrency(deal.amount, deal.currency) : "—"}
                 </td>
                 <td className="px-4 py-3"><StatusBadge status={deal.status} /></td>
+                <td className="px-4 py-3 text-xs text-foreground-muted">
+                  {deal.advisors && deal.advisors.length > 0
+                    ? deal.advisors.join(", ")
+                    : <span className="italic text-foreground-muted/50">—</span>}
+                </td>
                 <td className="px-4 py-3 text-foreground-muted text-xs">{formatDate(deal.announcementDate)}</td>
                 <td className="px-4 py-3">
                   {deal.sourceUrl ? (
