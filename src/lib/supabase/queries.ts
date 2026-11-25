@@ -323,22 +323,51 @@ export async function fetchBriefings(): Promise<Briefing[]> {
 
 export interface DashboardStats {
   activeCompanies: number;
+  totalCompanies: number;
   totalDeals: number;
   activeDeals: number;
+  closedDeals: number;
   totalOpportunities: number;
+  totalArticles: number;
+  totalDealValue: number; // sum of disclosed amounts in EUR-equivalent
+  largestDeal: { name: string; amount: number; currency: string } | null;
   recentDeals: Deal[];
   companies: Company[];
+  allDeals: Deal[];
+  recentArticles: NewsArticle[];
+}
+
+function computeDealAggregates(deals: Deal[]) {
+  let totalValue = 0;
+  let largest: { name: string; amount: number; currency: string } | null = null;
+  for (const d of deals) {
+    if (d.amount) {
+      totalValue += d.amount;
+      if (!largest || d.amount > largest.amount) {
+        largest = { name: d.name, amount: d.amount, currency: d.currency };
+      }
+    }
+  }
+  return { totalValue, largest };
 }
 
 export async function fetchDashboardData(): Promise<DashboardStats> {
   if (!isSupabaseReady()) {
+    const { totalValue, largest } = computeDealAggregates(sampleDeals);
     return {
       activeCompanies: sampleCompanies.filter((c) => c.monitoringStatus === "active").length,
+      totalCompanies: sampleCompanies.length,
       totalDeals: sampleDeals.length,
       activeDeals: sampleDeals.filter((d) => d.status === "announced" || d.status === "in_progress").length,
+      closedDeals: sampleDeals.filter((d) => d.status === "closed").length,
       totalOpportunities: sampleOpportunities.filter((o) => o.status !== "dismissed").length,
-      recentDeals: sampleDeals.slice(0, 5),
+      totalArticles: sampleNews.length,
+      totalDealValue: totalValue,
+      largestDeal: largest,
+      recentDeals: sampleDeals.slice(0, 8),
       companies: sampleCompanies,
+      allDeals: sampleDeals,
+      recentArticles: sampleNews.slice(0, 10),
     };
   }
 
@@ -346,27 +375,47 @@ export async function fetchDashboardData(): Promise<DashboardStats> {
 
   const [
     { count: activeCompanies },
+    { count: totalCompanies },
     { count: totalDeals },
     { count: activeDeals },
+    { count: closedDeals },
     { count: totalOpportunities },
+    { count: totalArticles },
+    { data: allDealsRaw },
     { data: recentDealsRaw },
     { data: companiesRaw },
+    { data: recentArticlesRaw },
   ] = await Promise.all([
     db.from("companies").select("*", { count: "exact", head: true }).eq("monitoring_status", "active"),
+    db.from("companies").select("*", { count: "exact", head: true }),
     db.from("deals").select("*", { count: "exact", head: true }),
     db.from("deals").select("*", { count: "exact", head: true }).in("status", ["announced", "in_progress"]),
+    db.from("deals").select("*", { count: "exact", head: true }).eq("status", "closed"),
     db.from("opportunities").select("*", { count: "exact", head: true }).neq("status", "dismissed"),
-    db.from("deals").select("*").order("last_updated", { ascending: false }).limit(5),
+    db.from("news_articles").select("*", { count: "exact", head: true }),
+    db.from("deals").select("*").order("announcement_date", { ascending: false }),
+    db.from("deals").select("*").order("last_updated", { ascending: false }).limit(8),
     db.from("companies").select("*").order("name"),
+    db.from("news_articles").select("*").order("published_at", { ascending: false }).limit(10),
   ]);
+
+  const allDeals = (allDealsRaw ?? []).map((r) => mapDeal(r as Record<string, unknown>));
+  const { totalValue, largest } = computeDealAggregates(allDeals);
 
   return {
     activeCompanies: activeCompanies ?? 0,
+    totalCompanies: totalCompanies ?? 0,
     totalDeals: totalDeals ?? 0,
     activeDeals: activeDeals ?? 0,
+    closedDeals: closedDeals ?? 0,
     totalOpportunities: totalOpportunities ?? 0,
+    totalArticles: totalArticles ?? 0,
+    totalDealValue: totalValue,
+    largestDeal: largest,
     recentDeals: (recentDealsRaw ?? []).map((r) => mapDeal(r as Record<string, unknown>)),
     companies: (companiesRaw ?? []).map((r) => mapCompany(r as Record<string, unknown>)),
+    allDeals,
+    recentArticles: (recentArticlesRaw ?? []).map((r) => mapNewsArticle(r as Record<string, unknown>, [])),
   };
 }
 
