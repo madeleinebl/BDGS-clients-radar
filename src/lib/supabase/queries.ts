@@ -313,10 +313,61 @@ export async function fetchBriefings(): Promise<Briefing[]> {
 
   if (error) {
     console.error("[BDGS] fetchBriefings error:", error.message);
-    return sampleBriefings;
+    return [];
   }
 
   return (data ?? []).map((r) => mapBriefing(r as Record<string, unknown>));
+}
+
+// ─── Dashboard-optimised queries (counts + limited rows) ─────────────────────
+
+export interface DashboardStats {
+  activeCompanies: number;
+  totalDeals: number;
+  activeDeals: number;
+  totalOpportunities: number;
+  recentDeals: Deal[];
+  companies: Company[];
+}
+
+export async function fetchDashboardData(): Promise<DashboardStats> {
+  if (!isSupabaseReady()) {
+    return {
+      activeCompanies: sampleCompanies.filter((c) => c.monitoringStatus === "active").length,
+      totalDeals: sampleDeals.length,
+      activeDeals: sampleDeals.filter((d) => d.status === "announced" || d.status === "in_progress").length,
+      totalOpportunities: sampleOpportunities.filter((o) => o.status !== "dismissed").length,
+      recentDeals: sampleDeals.slice(0, 5),
+      companies: sampleCompanies,
+    };
+  }
+
+  const db = getDb();
+
+  const [
+    { count: activeCompanies },
+    { count: totalDeals },
+    { count: activeDeals },
+    { count: totalOpportunities },
+    { data: recentDealsRaw },
+    { data: companiesRaw },
+  ] = await Promise.all([
+    db.from("companies").select("*", { count: "exact", head: true }).eq("monitoring_status", "active"),
+    db.from("deals").select("*", { count: "exact", head: true }),
+    db.from("deals").select("*", { count: "exact", head: true }).in("status", ["announced", "in_progress"]),
+    db.from("opportunities").select("*", { count: "exact", head: true }).neq("status", "dismissed"),
+    db.from("deals").select("*").order("last_updated", { ascending: false }).limit(5),
+    db.from("companies").select("*").order("name"),
+  ]);
+
+  return {
+    activeCompanies: activeCompanies ?? 0,
+    totalDeals: totalDeals ?? 0,
+    activeDeals: activeDeals ?? 0,
+    totalOpportunities: totalOpportunities ?? 0,
+    recentDeals: (recentDealsRaw ?? []).map((r) => mapDeal(r as Record<string, unknown>)),
+    companies: (companiesRaw ?? []).map((r) => mapCompany(r as Record<string, unknown>)),
+  };
 }
 
 export async function fetchDealById(id: string): Promise<Deal | undefined> {

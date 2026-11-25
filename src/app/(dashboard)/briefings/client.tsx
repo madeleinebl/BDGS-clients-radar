@@ -24,7 +24,7 @@ export function BriefingsClient({ sampleBriefings }: { sampleBriefings: Briefing
     <div className="max-w-[1280px] mx-auto space-y-6">
       <PageHeader
         title="Briefings"
-        description="AI-generated daily and weekly intelligence summaries"
+        description="Synthèses quotidiennes et hebdomadaires générées par IA"
       />
 
       {/* Tabs */}
@@ -87,8 +87,8 @@ export function BriefingsClient({ sampleBriefings }: { sampleBriefings: Briefing
       {filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <FileText className="h-10 w-10 text-foreground-muted/50 mb-3" />
-          <p className="text-sm font-medium">No briefings yet</p>
-          <p className="text-xs text-foreground-muted mt-1">Briefings will be generated once AI analysis is configured</p>
+          <p className="text-sm font-medium">Aucun briefing disponible</p>
+          <p className="text-xs text-foreground-muted mt-1 max-w-sm">Les briefings seront générés automatiquement une fois l&apos;analyse IA configurée et les flux d&apos;actualités actifs.</p>
         </div>
       )}
     </div>
