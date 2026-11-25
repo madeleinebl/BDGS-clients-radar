@@ -12,6 +12,7 @@ import {
   Lightbulb,
   Star,
   FileText,
+  BookOpen,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -30,6 +31,7 @@ const navItems = [
   },
   { href: "/watchlist", label: "Watchlist", icon: Star },
   { href: "/briefings", label: "Briefings", icon: FileText },
+  { href: "/lma", label: "Doc LMA", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
