@@ -253,15 +253,23 @@ describe("Deal Detector", () => {
 
   // ── Constraint tests: No fabrication ───────────────────────────────
 
-  test("never invents advisors", () => {
+  test("extracts explicitly mentioned advisors but never invents them", () => {
+    // When a known firm IS mentioned in advisory context → extract it
     const deals = detectDeals(
-      [article("TotalEnergies réalise une émission obligataire de 500 millions d'euros, conseillé par BNP Paribas et Linklaters")],
+      [article("TotalEnergies réalise une émission obligataire de 500 millions d'euros, conseillé par Linklaters")],
       COMPANIES,
     );
     expect(deals).toHaveLength(1);
-    // Even though advisors are mentioned in the article, we don't extract them
-    // (extraction of advisor names from text is unreliable — per project rules)
-    expect(deals[0].advisors).toEqual([]);
+    expect(deals[0].advisors.length).toBeGreaterThanOrEqual(1);
+    expect(deals[0].advisors.some((a: string) => a.includes("Linklaters"))).toBe(true);
+
+    // When NO advisor is mentioned → empty list (never invent)
+    const dealsNoAdvisor = detectDeals(
+      [article("TotalEnergies réalise une émission obligataire de 500 millions d'euros")],
+      COMPANIES,
+    );
+    expect(dealsNoAdvisor).toHaveLength(1);
+    expect(dealsNoAdvisor[0].advisors).toEqual([]);
   });
 
   test("does not invent amounts when none stated", () => {

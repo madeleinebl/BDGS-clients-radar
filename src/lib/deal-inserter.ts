@@ -48,6 +48,7 @@ export async function insertDetectedDeals(
     name: string;
     amount: number | null;
     announcement_date: string;
+    advisors: string[];
   }>;
 
   for (const deal of deals) {
@@ -69,22 +70,41 @@ export async function insertDetectedDeals(
     });
 
     if (duplicate) {
+      // Check if we can enrich the existing deal
+      const updates: Record<string, unknown> = {};
+      const updateReasons: string[] = [];
+
       // If new article has an amount and existing deal doesn't → update
       if (deal.amount && !duplicate.amount) {
+        updates.amount = deal.amount;
+        updates.currency = deal.currency;
+        updates.summary = deal.summary;
+        updates.source_url = deal.sourceUrl;
+        updateReasons.push(`amount → ${deal.currency} ${deal.amount}M`);
+      }
+
+      // Merge advisors: add any new advisors not already in the existing list
+      if (deal.advisors.length > 0) {
+        const existingAdvisors = new Set(duplicate.advisors ?? []);
+        const newAdvisors = deal.advisors.filter((a) => !existingAdvisors.has(a));
+        if (newAdvisors.length > 0) {
+          updates.advisors = [...(duplicate.advisors ?? []), ...newAdvisors];
+          updateReasons.push(`advisors +${newAdvisors.length}: ${newAdvisors.join(", ")}`);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        updates.last_updated = new Date().toISOString();
         const { error } = await db
           .from("deals")
-          .update({
-            amount: deal.amount,
-            currency: deal.currency,
-            summary: deal.summary,
-            source_url: deal.sourceUrl,
-            last_updated: new Date().toISOString(),
-          })
+          .update(updates)
           .eq("id", duplicate.id);
 
         if (!error) {
           result.updated++;
-          result.details.push(`Updated amount on: ${duplicate.name} → ${deal.currency} ${deal.amount}M`);
+          result.details.push(`Updated "${duplicate.name}": ${updateReasons.join("; ")}`);
+          // Update in-memory copy for intra-batch merging
+          if (updates.advisors) duplicate.advisors = updates.advisors as string[];
         }
       } else {
         result.skipped++;
@@ -110,7 +130,7 @@ export async function insertDetectedDeals(
       summary: deal.summary,
       buyers: deal.buyers,
       sellers: deal.sellers,
-      advisors: deal.advisors, // Always empty — never invented
+      advisors: deal.advisors, // Extracted from article text — never invented
     });
 
     if (error) {
@@ -127,6 +147,7 @@ export async function insertDetectedDeals(
         name: deal.name,
         amount: deal.amount,
         announcement_date: deal.announcementDate,
+        advisors: deal.advisors,
       });
     }
   }

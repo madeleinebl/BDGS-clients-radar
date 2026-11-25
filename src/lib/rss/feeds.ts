@@ -176,6 +176,30 @@ export const feeds: FeedConfig[] = [
     lang: "fr",
     enabled: true,
   },
+  // ─── Law firm deal announcements ────────────────────────────────────────────
+  // These feeds capture deal advisor information directly from firm websites.
+  // Headlines follow patterns like "[Firm] advises [Client] on [Deal]"
+  {
+    name: "Clifford Chance — News",
+    url: "https://www.cliffordchance.com/rss/rss-feed-news.xml",
+    defaultCategory: "Other",
+    lang: "en",
+    enabled: true,
+  },
+  {
+    name: "Google News — Cabinets avocats deals",
+    url: "https://news.google.com/rss/search?q=%22a+conseill%C3%A9%22+OR+%22advised+by%22+OR+%22conseil+juridique%22+LBO+OR+acquisition+OR+financement&hl=fr&gl=FR&ceid=FR:fr",
+    defaultCategory: "Other",
+    lang: "fr",
+    enabled: true,
+  },
+  {
+    name: "Google News — Law firm deals Europe",
+    url: "https://news.google.com/rss/search?q=%22advises%22+OR+%22advised%22+%22Clifford+Chance%22+OR+%22Linklaters%22+OR+%22Latham%22+OR+%22Freshfields%22+OR+%22Gide%22+OR+%22Bredin+Prat%22&hl=en&gl=FR&ceid=FR:en",
+    defaultCategory: "Other",
+    lang: "en",
+    enabled: true,
+  },
   // ─── Deal-specific ───────────────────────────────────────────────────────────
   {
     name: "Mergermarket (free headlines)",

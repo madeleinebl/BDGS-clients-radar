@@ -16,7 +16,13 @@
  * It matches articles against monitored companies, detects deal-related
  * keywords, extracts amounts when explicitly stated, and classifies
  * deal type and status from linguistic patterns.
+ *
+ * Advisor extraction: pattern-matches law firm names from article text
+ * and law firm deal announcements. Only explicitly mentioned firms are
+ * extracted — never invented.
  */
+
+import { extractAdvisors, formatAdvisorForDisplay } from "./advisor-extractor";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -35,7 +41,7 @@ export interface DetectedDeal {
   sourceUrl: string;
   buyers: string[];
   sellers: string[];
-  advisors: string[];           // Always empty — we never invent advisors
+  advisors: string[];           // Extracted from article text — never invented
   confidence: "high" | "medium" | "low";
   matchReason: string;          // Why this was flagged as a deal
 }
@@ -315,10 +321,19 @@ export function detectDeals(
     // 5. Extract counterparty (best effort)
     const counterparty = extractCounterparty(fullText, matchedCompanies[0].name);
 
-    // 6. Determine confidence
+    // 6. Extract advisors (only explicitly mentioned in text)
+    const extractedAdvisors = extractAdvisors(
+      article.headline,
+      article.summary,
+      article.source,
+      article.sourceUrl,
+    );
+    const advisorNames = extractedAdvisors.map((a) => formatAdvisorForDisplay(a));
+
+    // 7. Determine confidence
     const confidence = determineConfidence(dealMatch.weight, matchedCompanies.length, amount !== null);
 
-    // 7. Build deal name
+    // 8. Build deal name
     const primaryCompany = matchedCompanies[0];
     const dealName = buildDealName(primaryCompany.name, dealMatch.type, counterparty, amount);
 
@@ -342,7 +357,7 @@ export function detectDeals(
       sellers: dealMatch.type === "Asset disposal"
         ? [primaryCompany.name]
         : [],
-      advisors: [], // NEVER invented
+      advisors: advisorNames, // Extracted from article text — never invented
       confidence,
       matchReason: `Matched "${dealMatch.keyword}" for ${primaryCompany.name}`,
     });
