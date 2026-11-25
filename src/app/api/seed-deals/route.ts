@@ -13,6 +13,7 @@
 
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 interface DealSeed {
   name: string;
@@ -470,9 +471,9 @@ export async function GET() {
     const db = createServerClient();
 
     // 1. Fetch all companies to match names → UUIDs
-    const { data: companies, error: compError } = await db
+    const { data: companiesRaw, error: compError } = await db
       .from("companies")
-      .select("id, name");
+      .select("*");
 
     if (compError) {
       return NextResponse.json(
@@ -480,6 +481,8 @@ export async function GET() {
         { status: 500 },
       );
     }
+
+    const companies = companiesRaw as unknown as Array<{ id: string; name: string }> | null;
 
     // Build lookup: lowercase company name → id
     const companyMap = new Map<string, string>();
@@ -490,7 +493,7 @@ export async function GET() {
     // 2. Check how many deals already exist
     const { count: existingCount } = await db
       .from("deals")
-      .select("id", { count: "exact", head: true });
+      .select("*", { count: "exact", head: true });
 
     if ((existingCount ?? 0) > 0) {
       return NextResponse.json({
@@ -514,7 +517,8 @@ export async function GET() {
         continue;
       }
 
-      const { error: insertError } = await db.from("deals").insert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: insertError } = await (db.from("deals") as any).insert({
         name: deal.name,
         company_id: companyId,
         deal_type: deal.deal_type,
