@@ -16,6 +16,8 @@
 import { NextResponse } from "next/server";
 import { ingestAllFeeds } from "@/lib/rss/ingest";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { detectDeals, type ArticleInput } from "@/lib/deal-detector";
+import { insertDetectedDeals } from "@/lib/deal-inserter";
 import type { Database } from "@/lib/supabase/types";
 
 export async function POST() {
@@ -68,11 +70,47 @@ export async function POST() {
       }
     }
 
+    // ── Phase 2: Detect deals from newly ingested articles ──────────────
+    let dealResult = { inserted: 0, skipped: 0, updated: 0, details: [] as string[] };
+
+    try {
+      // Fetch monitored companies
+      const { data: companiesRaw } = await db.from("companies").select("*");
+      const companies = (companiesRaw ?? []) as Array<{ id: string; name: string }>;
+
+      if (companies.length > 0 && articles.length > 0) {
+        // Convert ingested articles to ArticleInput format
+        const articleInputs: ArticleInput[] = articles.map((a) => ({
+          headline: a.headline,
+          summary: a.summary || "",
+          sourceUrl: a.sourceUrl,
+          source: a.source,
+          publishedAt: a.publishedAt,
+        }));
+
+        const detectedDeals = detectDeals(articleInputs, companies);
+        console.log(`[BDGS] Deal detection: ${detectedDeals.length} deals detected from ${articles.length} articles`);
+
+        if (detectedDeals.length > 0) {
+          dealResult = await insertDetectedDeals(db, detectedDeals);
+          console.log(`[BDGS] Deal insertion: ${dealResult.inserted} new, ${dealResult.updated} updated, ${dealResult.skipped} skipped`);
+        }
+      }
+    } catch (dealErr) {
+      console.error("[BDGS] Deal detection error:", dealErr);
+      // Don't fail the whole ingest — article ingestion already succeeded
+    }
+
     return NextResponse.json({
       status: "ok",
       fetched: articles.length,
-      inserted,
-      skipped,
+      articles_inserted: inserted,
+      articles_skipped: skipped,
+      deals_detected: dealResult.inserted + dealResult.updated + dealResult.skipped,
+      deals_inserted: dealResult.inserted,
+      deals_updated: dealResult.updated,
+      deals_skipped: dealResult.skipped,
+      deal_details: dealResult.details,
     });
   } catch (err) {
     console.error("[BDGS] Ingestion error:", err);
