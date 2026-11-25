@@ -10,9 +10,10 @@ import type { Deal, Company } from "@/data/sample-data";
 import { formatDate, formatCurrency } from "@/lib/utils";
 
 const dealTypeOptions = [
-  "All Types", "M&A", "LBO", "Refinancing", "IPO", "Bond Issuance",
-  "Capital Increase", "Asset Sale", "Joint Venture", "Restructuring",
-  "Project Finance", "Private Placement",
+  "All Types", "M&A", "LBO", "Refinancing", "Corporate loan",
+  "Bond issuance", "Private placement", "Project finance",
+  "Infrastructure investment", "Asset disposal", "Capital increase",
+  "Joint venture",
 ].map((v) => ({ value: v, label: v }));
 const statusOptions = ["All Statuses", "announced", "in_progress", "closed", "cancelled", "rumoured"]
   .map((v) => ({ value: v, label: v }));
@@ -60,7 +61,7 @@ export function DealsClient({ sampleDeals, companies }: { sampleDeals: Deal[]; c
     <div className="max-w-[1280px] mx-auto space-y-6">
       <PageHeader
         title="Deal Tracker"
-        description="Track announced, in-progress, and completed transactions"
+        description="Suivi des transactions annoncées, en cours et clôturées"
       />
 
       <FilterBar
@@ -123,14 +124,25 @@ export function DealsClient({ sampleDeals, companies }: { sampleDeals: Deal[]; c
         {filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Handshake className="h-10 w-10 text-foreground-muted/50 mb-3" />
-            <p className="text-sm font-medium">No deals match your filters</p>
-            <p className="text-xs text-foreground-muted mt-1">Try adjusting your search or filters</p>
+            {sampleDeals.length === 0 ? (
+              <>
+                <p className="text-sm font-medium">Aucun deal enregistré</p>
+                <p className="text-xs text-foreground-muted mt-1 max-w-sm">
+                  Les deals apparaîtront ici au fur et à mesure qu&apos;ils seront détectés dans les sources d&apos;actualité ou ajoutés manuellement.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium">Aucun deal ne correspond à vos filtres</p>
+                <p className="text-xs text-foreground-muted mt-1">Essayez d&apos;ajuster votre recherche ou vos filtres</p>
+              </>
+            )}
           </div>
         )}
       </div>
 
       <p className="text-xs text-foreground-muted">
-        Showing {filtered.length} of {sampleDeals.length} deals
+        {filtered.length} sur {sampleDeals.length} deals
       </p>
     </div>
   );
