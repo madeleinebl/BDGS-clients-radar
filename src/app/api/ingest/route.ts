@@ -101,6 +101,25 @@ export async function POST() {
       // Don't fail the whole ingest — article ingestion already succeeded
     }
 
+    // ── Phase 3: Auto-generate daily briefing ───────────────────────────
+    let briefingTitle: string | null = null;
+
+    try {
+      const briefingRes = await fetch(
+        new URL("/api/generate-briefing", process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "daily" }) },
+      );
+      if (briefingRes.ok) {
+        const briefingData = await briefingRes.json();
+        if (briefingData.status === "ok") {
+          briefingTitle = briefingData.title;
+          console.log(`[BDGS] Briefing generated: ${briefingTitle}`);
+        }
+      }
+    } catch (briefingErr) {
+      console.error("[BDGS] Briefing generation error:", briefingErr);
+    }
+
     return NextResponse.json({
       status: "ok",
       fetched: articles.length,
@@ -111,6 +130,7 @@ export async function POST() {
       deals_updated: dealResult.updated,
       deals_skipped: dealResult.skipped,
       deal_details: dealResult.details,
+      briefing: briefingTitle,
     });
   } catch (err) {
     console.error("[BDGS] Ingestion error:", err);
