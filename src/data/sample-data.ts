@@ -509,7 +509,7 @@ export const deals: Deal[] = [
     companyId: "co-001",
     dealType: "M&A",
     counterparty: "Sentinel Electronics Ltd",
-    amount: 850_000_000,
+    amount: 850,  // in millions
     currency: "EUR",
     status: "in_progress",
     announcementDate: "2026-11-10",
@@ -527,7 +527,7 @@ export const deals: Deal[] = [
     name: "Solaris Andalusia Solar PV Project Finance",
     companyId: "co-003",
     dealType: "Project finance",
-    amount: 500_000_000,
+    amount: 500,  // in millions
     currency: "EUR",
     status: "announced",
     announcementDate: "2026-11-19",
@@ -545,7 +545,7 @@ export const deals: Deal[] = [
     name: "PanEuropean Fund IV Final Close",
     companyId: "co-007",
     dealType: "Capital increase",
-    amount: 2_100_000_000,
+    amount: 2_100,  // in millions
     currency: "EUR",
     status: "closed",
     announcementDate: "2026-10-15",
@@ -563,7 +563,7 @@ export const deals: Deal[] = [
     name: "Riviera Telecom Senior Debt Refinancing",
     companyId: "co-009",
     dealType: "Refinancing",
-    amount: 1_200_000_000,
+    amount: 1_200,  // in millions
     currency: "EUR",
     status: "announced",
     announcementDate: "2026-11-17",
@@ -581,7 +581,7 @@ export const deals: Deal[] = [
     name: "Atlas Digital Series C",
     companyId: "co-006",
     dealType: "Private placement",
-    amount: 40_000_000,
+    amount: 40,  // in millions
     currency: "EUR",
     status: "closed",
     announcementDate: "2026-11-18",
@@ -599,7 +599,7 @@ export const deals: Deal[] = [
     name: "GreenPort Rotterdam Terminal Expansion",
     companyId: "co-010",
     dealType: "Project finance",
-    amount: 350_000_000,
+    amount: 350,  // in millions
     currency: "EUR",
     status: "rumoured",
     announcementDate: "2026-11-18",
@@ -618,7 +618,7 @@ export const deals: Deal[] = [
     companyId: "co-007",
     dealType: "Infrastructure investment",
     counterparty: "Nordic Wind Holdings",
-    amount: 1_050_000_000,
+    amount: 1_050,  // in millions
     currency: "EUR",
     status: "announced",
     announcementDate: "2026-11-19",
@@ -636,7 +636,7 @@ export const deals: Deal[] = [
     name: "Château Hospitality Swiss Portfolio Disposal",
     companyId: "co-004",
     dealType: "Asset disposal",
-    amount: 200_000_000,
+    amount: 200,  // in millions
     currency: "EUR",
     status: "rumoured",
     announcementDate: "2026-11-15",
@@ -654,7 +654,7 @@ export const deals: Deal[] = [
     name: "Meridian Industries Aerospace Division Bond",
     companyId: "co-001",
     dealType: "Bond issuance",
-    amount: 300_000_000,
+    amount: 300,  // in millions
     currency: "EUR",
     status: "closed",
     announcementDate: "2026-09-20",
@@ -673,7 +673,7 @@ export const deals: Deal[] = [
     name: "Valterra Green Bond for Portuguese Operations",
     companyId: "co-008",
     dealType: "Bond issuance",
-    amount: 200_000_000,
+    amount: 200,  // in millions
     currency: "EUR",
     status: "rumoured",
     announcementDate: "2026-11-14",
@@ -710,7 +710,7 @@ export const deals: Deal[] = [
     companyId: "co-003",
     dealType: "M&A",
     counterparty: "Hellenic Wind SA",
-    amount: 180_000_000,
+    amount: 180,  // in millions
     currency: "EUR",
     status: "closed",
     announcementDate: "2026-08-12",

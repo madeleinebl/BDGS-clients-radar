@@ -13,17 +13,23 @@ export function formatDate(date: string | Date): string {
   });
 }
 
-export function formatCurrency(amount: number, currency: string = "EUR"): string {
-  if (amount >= 1_000_000_000) {
-    return `${(amount / 1_000_000_000).toFixed(1)}B ${currency}`;
+/**
+ * Format a deal amount for display.
+ * All amounts in the system are stored in MILLIONS (e.g. 500 = €500M).
+ */
+export function formatCurrency(amountInMillions: number, currency: string = "EUR"): string {
+  const symbol = currency === "EUR" ? "€" : currency === "USD" ? "$" : currency === "GBP" ? "£" : `${currency} `;
+  if (amountInMillions >= 1_000) {
+    const bn = amountInMillions / 1_000;
+    return `${symbol}${bn % 1 === 0 ? bn.toFixed(0) : bn.toFixed(1)}Md`;
   }
-  if (amount >= 1_000_000) {
-    return `${(amount / 1_000_000).toFixed(0)}M ${currency}`;
+  if (amountInMillions >= 1) {
+    return `${symbol}${amountInMillions % 1 === 0 ? amountInMillions.toFixed(0) : amountInMillions.toFixed(1)}M`;
   }
-  if (amount >= 1_000) {
-    return `${(amount / 1_000).toFixed(0)}K ${currency}`;
+  if (amountInMillions > 0) {
+    return `${symbol}${(amountInMillions * 1_000).toFixed(0)}K`;
   }
-  return `${amount} ${currency}`;
+  return `${symbol}0`;
 }
 
 export function getRelevanceColor(score: number): string {
